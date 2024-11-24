@@ -1,16 +1,13 @@
 package khome
 
 import io.ktor.http.HttpMethod
-import io.ktor.util.KtorExperimentalAPI
 import khome.core.Configuration
 import khome.core.clients.WebSocketClient
 import khome.core.mapping.ObjectMapperInterface
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.CancellationException
 import mu.KotlinLogging
 import java.net.ConnectException
 
-@ObsoleteCoroutinesApi
-@KtorExperimentalAPI
 internal class HassClientImpl(
     private val config: Configuration,
     private val httpClient: WebSocketClient,
@@ -22,7 +19,6 @@ internal class HassClientImpl(
     private val path = "/api/websocket"
     private val isSecure: Boolean = config.secure
 
-    @ObsoleteCoroutinesApi
     override suspend fun startSession(block: suspend KhomeSession.() -> Unit) =
         startSessionCatching(block)
 
@@ -46,13 +42,13 @@ internal class HassClientImpl(
             }
         } catch (exception: ConnectException) {
             logger.error(exception) { "Could not establish a connection to your homeassistant instance." }
+        } catch (exception: CancellationException) {
+            logger.info("khome session was cancelled")
         } catch (exception: RuntimeException) {
-            logger.error(exception) { "Could not start khome due to: ${exception.message}" }
+            logger.error(exception) { "Could not start khome due to: ${exception}" }
         }
 }
 
 internal interface HassClient {
-    @ObsoleteCoroutinesApi
-    @KtorExperimentalAPI
     suspend fun startSession(block: suspend KhomeSession.() -> Unit)
 }

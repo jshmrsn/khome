@@ -34,7 +34,7 @@ interface Switchable {
 }
 
 interface Observable<E> {
-    fun attachObserver(observer: ObserverFunction<E>): Switchable
+    fun attachObserver(observerFunction: ObserverFunction<E>): Switchable
 }
 
 internal class ObserverImpl<E>(

@@ -1,7 +1,6 @@
 package khome.testing
 
 import com.google.gson.JsonObject
-import io.ktor.util.KtorExperimentalAPI
 import khome.ActuatorsByApiName
 import khome.ActuatorsByEntity
 import khome.HassAPiCommandHistory
@@ -15,11 +14,9 @@ import khome.entities.ActuatorStateUpdater
 import khome.entities.SensorStateUpdater
 import khome.entities.devices.Actuator
 import khome.values.EntityId
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import mu.KotlinLogging
 import org.koin.dsl.module
 
-@ExperimentalStdlibApi
 internal class KhomeTestApplicationImpl(
     private val sensorsByApiName: SensorsByApiName,
     private val actuatorsByApiName: ActuatorsByApiName,
@@ -31,16 +28,13 @@ internal class KhomeTestApplicationImpl(
     private val logger = KotlinLogging.logger { }
 
     init {
-        val testClient = module(override = true) {
+        val testClient = module() { // TODO override = true not available in Koin 4?
             single<HassApiClient> { HassApiTestClient(get()) }
         }
 
         KhomeKoinContext.addModule(testClient)
     }
 
-    @KtorExperimentalAPI
-    @ObsoleteCoroutinesApi
-    @ExperimentalStdlibApi
     override fun setStateAndAttributes(json: String) {
         val stateJson = mapper.fromJson<JsonObject>(json)
         val entityIdFromState = checkNotNull(stateJson["entity_id"])

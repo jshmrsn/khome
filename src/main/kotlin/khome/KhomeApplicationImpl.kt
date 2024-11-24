@@ -1,6 +1,7 @@
 package khome
 
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.close
 import khome.communicating.CommandDataWithEntityId
 import khome.communicating.HassApiClient
 import khome.communicating.ServiceCommandImpl
@@ -14,11 +15,7 @@ import khome.core.boot.statehandling.EntityStateInitializer
 import khome.core.boot.subscribing.HassEventSubscriber
 import khome.core.koin.KoinContainer
 import khome.core.mapping.ObjectMapperInterface
-import khome.entities.ActuatorStateUpdater
-import khome.entities.Attributes
-import khome.entities.EntityRegistrationValidation
-import khome.entities.SensorStateUpdater
-import khome.entities.State
+import khome.entities.*
 import khome.entities.devices.Actuator
 import khome.entities.devices.ActuatorImpl
 import khome.entities.devices.Sensor
@@ -33,11 +30,9 @@ import khome.values.Domain
 import khome.values.EntityId
 import khome.values.EventType
 import khome.values.Service
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import mu.KotlinLogging
-import org.koin.core.inject
+import org.koin.core.component.inject
 import org.koin.core.parameter.parametersOf
 import kotlin.collections.set
 import kotlin.reflect.KClass
@@ -49,12 +44,7 @@ internal typealias EventHandlerByEventType = MutableMap<EventType, EventSubscrip
 internal typealias HassAPiCommandHistory = MutableMap<EntityId, ServiceCommandImpl<CommandDataWithEntityId>>
 internal typealias ApplicationReadyCallbacks = MutableList<KhomeApplication.() -> Unit>
 
-@OptIn(
-    ExperimentalStdlibApi::class,
-    KtorExperimentalAPI::class,
-    ObsoleteCoroutinesApi::class,
-    ExperimentalCoroutinesApi::class
-)
+
 internal class KhomeApplicationImpl : KhomeApplication {
 
     private val logger = KotlinLogging.logger { }

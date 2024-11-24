@@ -1,7 +1,6 @@
 package khome.entities.devices
 
 import com.google.gson.JsonObject
-import io.ktor.util.KtorExperimentalAPI
 import khome.KhomeApplicationImpl
 import khome.communicating.CommandDataWithEntityId
 import khome.communicating.ServiceCommandImpl
@@ -11,18 +10,10 @@ import khome.core.observing.CircularBuffer
 import khome.entities.Attributes
 import khome.entities.State
 import khome.errorHandling.ObserverExceptionHandler
-import khome.observability.ObservableDelegateNoInitial
-import khome.observability.Observer
-import khome.observability.ObserverFunction
-import khome.observability.ObserverImpl
-import khome.observability.StateAndAttributes
-import khome.observability.Switchable
+import khome.observability.*
 import khome.values.Service
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlin.reflect.KClass
 
-@KtorExperimentalAPI
-@ObsoleteCoroutinesApi
 internal class ActuatorImpl<S : State<*>, A : Attributes>(
     private val app: KhomeApplicationImpl,
     private val mapper: ObjectMapperInterface,
@@ -41,7 +32,6 @@ internal class ActuatorImpl<S : State<*>, A : Attributes>(
     override val observerCount: Int
         get() = observers.size
 
-    @KtorExperimentalAPI
     override var desiredState: S? = null
         set(newDesiredState) {
             newDesiredState?.let { desiredState ->
@@ -66,7 +56,6 @@ internal class ActuatorImpl<S : State<*>, A : Attributes>(
         attributes = mapper.fromJson(newAttributes, attributesType.java) as A
     }
 
-    @KtorExperimentalAPI
     override fun callService(service: Service, parameterBag: CommandDataWithEntityId) {
         ServiceCommandImpl(
             service = service,

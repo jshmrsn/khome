@@ -3,7 +3,7 @@ import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.4.30"
+    kotlin("jvm") version "2.0.21"
     id("org.jetbrains.dokka") version "1.6.10"
     `maven-publish`
     id("io.gitlab.arturbosch.detekt") version "1.19.0"
@@ -23,7 +23,7 @@ repositories {
     mavenCentral()
 }
 
-val ktorVersion: String by project
+val ktor_version: String by project
 val koinVersion: String by project
 val mockkVersion: String by project
 val jupiterVersion: String by project
@@ -35,11 +35,12 @@ val slf4jVersion: String by project
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-json-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-client-gson:$ktorVersion")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-json-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-client-gson:$ktor_version")
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("org.slf4j:slf4j-simple:$slf4jVersion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")

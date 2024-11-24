@@ -1,9 +1,10 @@
 package khome.communicating
 
 import com.google.gson.annotations.SerializedName
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.utils.EmptyContent
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.http.encodedPath
 import khome.KhomeSession
 import khome.communicating.CommandType.CALL_SERVICE
 import khome.communicating.CommandType.SUBSCRIBE_EVENTS
@@ -14,13 +15,7 @@ import khome.values.Domain
 import khome.values.EntityId
 import khome.values.EventType
 import khome.values.Service
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import mu.KotlinLogging
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -60,8 +55,6 @@ abstract class DesiredServiceData : CommandDataWithEntityId {
 
 class EntityIdOnlyServiceData : DesiredServiceData()
 
-@ObsoleteCoroutinesApi
-@KtorExperimentalAPI
 internal data class ServiceCommandImpl<SD>(
     var domain: Domain? = null,
     val service: Service,
@@ -70,8 +63,6 @@ internal data class ServiceCommandImpl<SD>(
     override val type: CommandType = CALL_SERVICE
 ) : HassApiCommand
 
-@KtorExperimentalAPI
-@ObsoleteCoroutinesApi
 internal class HassApiClientImpl(
     private val khomeSession: KhomeSession,
     private val objectMapper: ObjectMapperInterface,
@@ -93,7 +84,7 @@ internal class HassApiClientImpl(
         coroutineScope.launch {
             restApiClient.post<HttpResponse> {
                 url { encodedPath = "/api/events/$eventType" }
-                body = eventData ?: EmptyContent
+                setBody(eventData ?: EmptyContent)
             }
         }
     }
@@ -102,7 +93,7 @@ internal class HassApiClientImpl(
         coroutineScope.async {
             restApiClient.post<HttpResponse> {
                 url { encodedPath = "/api/events/$eventType" }
-                body = eventData ?: EmptyContent
+                setBody(eventData ?: EmptyContent)
             }
         }
 }

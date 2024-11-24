@@ -5,22 +5,14 @@ import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.defaultRequest
-import io.ktor.client.features.json.GsonSerializer
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.websocket.WebSockets
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.header
-import io.ktor.client.request.host
-import io.ktor.client.request.port
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.serialization.kotlinx.json.json
 import khome.core.Configuration
 import khome.core.DefaultConfiguration
-import khome.core.boot.EventResponseConsumer
-import khome.core.boot.EventResponseConsumerImpl
-import khome.core.boot.HassApiInitializer
-import khome.core.boot.HassApiInitializerImpl
-import khome.core.boot.StateChangeEventSubscriber
-import khome.core.boot.StateChangeEventSubscriberImpl
+import khome.core.boot.*
 import khome.core.boot.authentication.Authenticator
 import khome.core.boot.authentication.AuthenticatorImpl
 import khome.core.boot.servicestore.ServiceStore
@@ -39,69 +31,16 @@ import khome.core.mapping.GsonTypeAdapterBridge
 import khome.core.mapping.KhomeTypeAdapter
 import khome.core.mapping.ObjectMapper
 import khome.core.mapping.ObjectMapperInterface
-import khome.core.mapping.adapter.default.InstantTypeAdapter
-import khome.core.mapping.adapter.default.LocalDateAdapter
-import khome.core.mapping.adapter.default.LocalDateTimeAdapter
-import khome.core.mapping.adapter.default.LocalTimeAdapter
-import khome.core.mapping.adapter.default.OffsetDateTimeAdapter
-import khome.core.mapping.adapter.default.RegexTypeAdapter
+import khome.core.mapping.adapter.default.*
 import khome.entities.ActuatorStateUpdater
 import khome.entities.EntityRegistrationValidation
 import khome.entities.SensorStateUpdater
 import khome.errorHandling.ErrorResponseData
-import khome.values.AlbumName
-import khome.values.AppId
-import khome.values.AppName
-import khome.values.Artist
-import khome.values.Azimuth
-import khome.values.Brightness
-import khome.values.ColorName
-import khome.values.ColorTemperature
-import khome.values.Device
-import khome.values.Domain
-import khome.values.Elevation
-import khome.values.EntityId
-import khome.values.EventType
-import khome.values.FriendlyName
-import khome.values.HSColor
-import khome.values.HvacMode
-import khome.values.Icon
-import khome.values.Initial
-import khome.values.Max
-import khome.values.MediaContentId
-import khome.values.MediaDuration
-import khome.values.MediaPosition
-import khome.values.MediaSource
-import khome.values.MediaTitle
-import khome.values.Min
-import khome.values.Mode
-import khome.values.Mute
-import khome.values.ObjectId
-import khome.values.Option
-import khome.values.PersonId
-import khome.values.Position
-import khome.values.PowerConsumption
-import khome.values.PresetMode
-import khome.values.RGBColor
-import khome.values.Rising
-import khome.values.Service
-import khome.values.Step
-import khome.values.Temperature
-import khome.values.UnitOfMeasurement
-import khome.values.UserId
-import khome.values.VolumeLevel
-import khome.values.XYColor
-import khome.values.Zone
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import org.koin.core.inject
+import khome.values.*
+import org.koin.core.component.inject
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.OffsetDateTime
+import java.time.*
 import kotlin.reflect.KClass
 
 internal typealias TypeAdapters = MutableMap<KClass<*>, TypeAdapter<*>>
@@ -124,9 +63,6 @@ typealias KhomeBuilder = Khome.() -> Unit
  * @return [KhomeApplication]
  */
 
-@ExperimentalCoroutinesApi
-@ObsoleteCoroutinesApi
-@KtorExperimentalAPI
 fun khomeApplication(init: KhomeBuilder = {}): KhomeApplication =
     KhomeImpl().apply(init).createApplication()
 
@@ -155,7 +91,6 @@ interface Khome {
 inline fun <reified T : Any, reified P : Any> Khome.registerTypeAdapter(adapter: KhomeTypeAdapter<T>) =
     registerTypeAdapter(adapter, T::class, P::class)
 
-@OptIn(ExperimentalStdlibApi::class, KtorExperimentalAPI::class, ObsoleteCoroutinesApi::class)
 private class KhomeImpl : Khome, KhomeComponent {
 
     init {
@@ -210,16 +145,20 @@ private class KhomeImpl : Khome, KhomeComponent {
 
                 single {
                     val client = HttpClient(CIO) {
-                        install(JsonFeature) {
-                            serializer = GsonSerializer {
-                                setPrettyPrinting()
-                                setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                                typeAdapters.forEach { adapter ->
-                                    registerTypeAdapter(adapter.key.java, adapter.value.nullSafe())
-                                }
-                                create()!!
-                            }
+                        // TODO Fully migrate JSON content negotiation configuration for Ktor 3
+                        install(ContentNegotiation) {
+                            json()
                         }
+//                        install(JsonFeature) {
+//                            serializer = GsonSerializer {
+//                                setPrettyPrinting()
+//                                setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+//                                typeAdapters.forEach { adapter ->
+//                                    registerTypeAdapter(adapter.key.java, adapter.value.nullSafe())
+//                                }
+//                                create()!!
+//                            }
+//                        }
 
                         val config = get<Configuration>()
 
